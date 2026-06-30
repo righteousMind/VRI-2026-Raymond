@@ -1,12 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Text,
-  Platform,
-} from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View, Text, Platform } from 'react-native';
 
 interface ChatInputProps {
   onSend: (text: string) => void;

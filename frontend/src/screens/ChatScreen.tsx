@@ -7,10 +7,12 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import ChatBubble from '../components/ChatBubble';
 import ChatInput from '../components/ChatInput';
+import VoiceScreen from './VoiceScreen';
 import { sendMessage } from '../services/openai';
 import { Message, OpenAIMessage } from '../types';
 
@@ -30,6 +32,7 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [voiceVisible, setVoiceVisible] = useState(false);
   const listRef = useRef<FlatList<Message>>(null);
   const conversationHistory = useRef<OpenAIMessage[]>([]);
 
@@ -81,11 +84,16 @@ export default function ChatScreen() {
         <View style={styles.headerIcon}>
           <Text style={styles.headerIconText}>🩺</Text>
         </View>
-        <View>
+        <View style={styles.headerTextGroup}>
           <Text style={styles.headerTitle}>Health Coach</Text>
           <Text style={styles.headerSubtitle}>AI-powered wellness guide</Text>
         </View>
+        <TouchableOpacity style={styles.voiceButton} onPress={() => setVoiceVisible(true)}>
+          <Text style={styles.voiceButtonText}>🎤</Text>
+        </TouchableOpacity>
       </View>
+
+      <VoiceScreen visible={voiceVisible} onClose={() => setVoiceVisible(false)} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -138,6 +146,20 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E5EA',
     backgroundColor: '#FFFFFF',
     gap: 12,
+  },
+  headerTextGroup: {
+    flex: 1,
+  },
+  voiceButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#EBF3FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  voiceButtonText: {
+    fontSize: 18,
   },
   headerIcon: {
     width: 42,
