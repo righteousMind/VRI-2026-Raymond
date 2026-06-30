@@ -22,3 +22,7 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
+
+# Generated audio files
+backend/public/audio/*.mp3
+backend/tmp/
