@@ -31,13 +31,10 @@ export default function ChatScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<FlatList<Message>>(null);
-
   const conversationHistory = useRef<OpenAIMessage[]>([]);
 
   const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      listRef.current?.scrollToEnd({ animated: true });
-    }, 80);
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 80);
   }, []);
 
   const handleSend = useCallback(
@@ -64,24 +61,18 @@ export default function ChatScreen() {
           { role: 'assistant', content: reply },
         ];
 
-        const assistantMessage: Message = {
-          id: generateId(),
-          role: 'assistant',
-          content: reply,
-          timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
+        setMessages((prev) => [
+          ...prev,
+          { id: generateId(), role: 'assistant', content: reply, timestamp: new Date() },
+        ]);
         scrollToBottom();
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-        setError(message);
+        setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       } finally {
         setIsLoading(false);
       }
     },
-    [scrollToBottom]
+    [scrollToBottom],
   );
 
   return (
