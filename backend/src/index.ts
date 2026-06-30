@@ -18,5 +18,11 @@ app.use('/api', voiceRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
-  console.log('OPENAI_API_KEY loaded:', !!process.env.OPENAI_API_KEY);
+  const provider = (process.env.AI_PROVIDER ?? 'openai').toLowerCase();
+  console.log(`AI provider: ${provider}`);
+  if (provider === 'gemini') {
+    console.log('GEMINI_API_KEY loaded:', !!process.env.GEMINI_API_KEY);
+  } else {
+    console.log('OPENAI_API_KEY loaded:', !!process.env.OPENAI_API_KEY);
+  }
 });
