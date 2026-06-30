@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+
+# env
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# logs
+npm-debug.log*
+yarn-error.log*
+
+# build
+build/
+coverage/
+
+# TypeScript
+*.tsbuildinfo
