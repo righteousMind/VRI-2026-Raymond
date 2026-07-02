@@ -4,8 +4,10 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import chatRouter from './routes/chat';
-import voiceRouter from './routes/voice';
+import authRouter from './routes/auth';
+import sessionsRouter from './routes/sessions';
+import answersRouter from './routes/answers';
+import { connectDB } from './services/db';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -13,16 +15,16 @@ const PORT = process.env.PORT ?? 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/audio', express.static(path.resolve('public/audio')));
-app.use('/api', chatRouter);
-app.use('/api', voiceRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/sessions', sessionsRouter);
+app.use('/api/answers', answersRouter);
 
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
-  const provider = (process.env.AI_PROVIDER ?? 'openai').toLowerCase();
-  console.log(`AI provider: ${provider}`);
-  if (provider === 'gemini') {
-    console.log('GEMINI_API_KEY loaded:', !!process.env.GEMINI_API_KEY);
-  } else {
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Backend running on http://localhost:${PORT}`);
     console.log('OPENAI_API_KEY loaded:', !!process.env.OPENAI_API_KEY);
-  }
+  });
+}).catch((err) => {
+  console.error('Failed to connect to MongoDB:', err);
+  process.exit(1);
 });
