@@ -1,7 +1,8 @@
 import { Router, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { AuthRequest, requireAuth } from '../middleware/auth';
-import { User } from '../models/User';
-import UserAnswers from '../models/UserAnswers';
+import { Users, Answers } from '../services/storage';
 import { getOpenAI } from '../services/openai';
 
 const router = Router();
@@ -34,11 +35,10 @@ Answer each question in 3–5 natural spoken sentences. Be specific to the user'
 
 router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = Users.findById(req.userId!);
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }
 
-    const profile = user.profile as Record<string, unknown>;
-    const systemPrompt = buildSystemPrompt(profile);
+    const systemPrompt = buildSystemPrompt(user.profile);
     const openai = getOpenAI();
 
     const answerPromises = QUESTIONS.map((question, i) =>
@@ -60,13 +60,7 @@ router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) =>
     );
 
     const answers = await Promise.all(answerPromises);
-
-    await UserAnswers.findOneAndUpdate(
-      { userId: req.userId },
-      { userId: req.userId, answers },
-      { upsert: true, new: true },
-    );
-
+    Answers.upsert(req.userId!, answers);
     res.json({ answers });
   } catch (err) {
     console.error('[answers/generate]', err);
@@ -74,13 +68,38 @@ router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) =>
   }
 });
 
-router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
+router.get('/', requireAuth, (req: AuthRequest, res: Response) => {
+  const doc = Answers.findByUser(req.userId!);
+  if (!doc) { res.status(404).json({ error: 'No answers found' }); return; }
+  res.json({ answers: doc.answers });
+});
+
+// POST /api/answers/tts — pre-generate audio for all answers, return URLs
+router.post('/tts', requireAuth, async (req: AuthRequest, res: Response) => {
+  const doc = Answers.findByUser(req.userId!);
+  if (!doc) { res.status(404).json({ error: 'No answers found' }); return; }
+
+  const openai = getOpenAI();
+  const audioDir = path.resolve('public/audio');
+
   try {
-    const doc = await UserAnswers.findOne({ userId: req.userId });
-    if (!doc) { res.status(404).json({ error: 'No answers found' }); return; }
-    res.json({ answers: doc.answers });
+    const audioPromises = doc.answers.map(async (a) => {
+      const speech = await openai.audio.speech.create({
+        model: 'tts-1',
+        voice: 'alloy',
+        input: a.answer,
+      });
+      const fileName = `${req.userId}_${a.questionIndex}.mp3`;
+      fs.writeFileSync(path.join(audioDir, fileName), Buffer.from(await speech.arrayBuffer()));
+      const base = `${req.protocol}://${req.headers.host}`;
+      return { questionIndex: a.questionIndex, url: `${base}/audio/${fileName}` };
+    });
+
+    const audioFiles = await Promise.all(audioPromises);
+    res.json({ audioFiles });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch answers' });
+    console.error('[answers/tts]', err);
+    res.status(500).json({ error: 'Failed to generate audio' });
   }
 });
 

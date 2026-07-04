@@ -10,7 +10,6 @@ import {
   View,
 } from 'react-native';
 import { Audio } from 'expo-av';
-import * as Speech from 'expo-speech';
 import { User, getToken } from '../services/auth';
 import SidePanel from '../components/SidePanel';
 import TypingDots from '../components/TypingDots';
@@ -18,12 +17,14 @@ import TypedText from '../components/TypedText';
 import { getCue, GENERIC_CUES } from '../data/cues';
 import { getTrialConfig } from '../data/latinSquare';
 import { API_URL } from '../config';
-import { getAnswers, AnswerEntry } from '../services/answers';
+import { AnswerEntry } from '../services/answers';
 
 type Phase = 'question' | 'recording' | 'delay' | 'answer' | 'complete';
 
 interface Props {
   user: User | null;
+  audioUris: string[];
+  answers: AnswerEntry[];
   onUpdateUser: (u: User) => void;
   onLogout: () => void;
 }
@@ -40,19 +41,52 @@ async function logSession(payload: object, token: string) {
   }
 }
 
-export default function VoiceScreen({ user, onUpdateUser, onLogout }: Props) {
+export default function VoiceScreen({ user, audioUris, answers, onUpdateUser, onLogout }: Props) {
   const [phase, setPhase] = useState<Phase>('question');
   const [questionIndex, setQuestionIndex] = useState(0);
   const [cueText, setCueText] = useState('');
   const [panelOpen, setPanelOpen] = useState(false);
-  const [answers, setAnswers] = useState<AnswerEntry[]>([]);
-
-  useEffect(() => {
-    getAnswers().then(setAnswers).catch(() => {});
-  }, []);
 
   const recordingRef = useRef<Audio.Recording | null>(null);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const preloadedRef = useRef<(Audio.Sound | null)[]>([]);
+  const cueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Pre-load all audio files into memory so playback is instant
+  useEffect(() => {
+    if (audioUris.length === 0) return;
+    let alive = true;
+    (async () => {
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
+      const sounds = await Promise.all(
+        audioUris.map((uri) =>
+          uri ? Audio.Sound.createAsync({ uri }, { shouldPlay: false }) : Promise.resolve(null),
+        ),
+      );
+      if (!alive) {
+        sounds.forEach((s) => s?.sound.unloadAsync());
+        return;
+      }
+      preloadedRef.current = sounds.map((s) => s?.sound ?? null);
+    })();
+    return () => {
+      alive = false;
+      preloadedRef.current.forEach((s) => { s?.stopAsync(); s?.unloadAsync(); });
+      preloadedRef.current = [];
+    };
+  }, [audioUris]);
+
+  // cleanup timers and active sound on unmount
+  useEffect(() => {
+    return () => {
+      if (cueTimerRef.current) clearTimeout(cueTimerRef.current);
+      if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
+      soundRef.current?.stopAsync();
+      soundRef.current?.unloadAsync();
+    };
+  }, []);
 
   const latinIndex = user?.latinIndex ?? 0;
   const currentAnswer = answers[questionIndex];
@@ -103,20 +137,20 @@ export default function VoiceScreen({ user, onUpdateUser, onLogout }: Props) {
 
     // show cue at random early time (300ms – 1200ms)
     const cueDelay = 300 + Math.random() * 900;
-    const cueTimer = setTimeout(() => setCueText(resolvedCue), cueDelay);
+    cueTimerRef.current = setTimeout(() => setCueText(resolvedCue), cueDelay);
 
-    // at end of delay → speak answer
-    const delayTimer = setTimeout(async () => {
+    // at end of delay → play pre-loaded sound instantly
+    delayTimerRef.current = setTimeout(async () => {
       setPhase('answer');
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
-      Speech.speak(currentAnswer.answer, { language: 'en-US', rate: 0.95 });
       logSession({ questionIndex, delay, cueType, cueText: resolvedCue, answerText: currentAnswer.answer }, token);
+      // Switch out of recording mode then play the pre-loaded sound
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
+      const sound = preloadedRef.current[questionIndex];
+      if (sound) {
+        soundRef.current = sound;
+        await sound.playAsync();
+      }
     }, delay * 1000);
-
-    return () => {
-      clearTimeout(cueTimer);
-      clearTimeout(delayTimer);
-    };
   }
 
   function handleMicPress() {
@@ -125,7 +159,10 @@ export default function VoiceScreen({ user, onUpdateUser, onLogout }: Props) {
   }
 
   function handleNext() {
-    Speech.stop();
+    if (cueTimerRef.current) { clearTimeout(cueTimerRef.current); cueTimerRef.current = null; }
+    if (delayTimerRef.current) { clearTimeout(delayTimerRef.current); delayTimerRef.current = null; }
+    soundRef.current?.stopAsync();
+    soundRef.current = null;
     setCueText('');
     const next = questionIndex + 1;
     if (next >= answers.length) {
@@ -136,8 +173,6 @@ export default function VoiceScreen({ user, onUpdateUser, onLogout }: Props) {
     }
   }
 
-  if (!currentAnswer) return null;
-
   if (phase === 'complete') {
     return (
       <SafeAreaView style={styles.container}>
@@ -145,6 +180,9 @@ export default function VoiceScreen({ user, onUpdateUser, onLogout }: Props) {
           <View style={styles.completeDot} />
           <Text style={styles.completeTitle}>All done!</Text>
           <Text style={styles.completeSubtitle}>Thank you for completing the session.</Text>
+          <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+            <Text style={styles.logoutText}>Log out</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -176,12 +214,6 @@ export default function VoiceScreen({ user, onUpdateUser, onLogout }: Props) {
 
       {/* Content */}
       <ScrollView style={styles.contentArea} contentContainerStyle={styles.contentInner}>
-        {/* Question */}
-        <View style={styles.questionCard}>
-          <Text style={styles.cardLabel}>QUESTION</Text>
-          <Text style={styles.questionText}>{currentAnswer.question}</Text>
-        </View>
-
         {/* Cue card — dots show entire delay, cue text typed when ready, both disappear at answer */}
         {phase === 'delay' || phase === 'answer' ? (
           <View style={styles.cueCard}>
@@ -257,11 +289,6 @@ const styles = StyleSheet.create({
   progress: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
   contentArea: { flex: 1 },
   contentInner: { paddingHorizontal: 20, gap: 12, paddingBottom: 20 },
-  questionCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 16, borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)', padding: 16,
-  },
   cueCard: {
     backgroundColor: 'rgba(255,160,0,0.07)',
     borderRadius: 16, borderWidth: 1,
@@ -276,7 +303,6 @@ const styles = StyleSheet.create({
     fontSize: 10, fontWeight: '700', letterSpacing: 1.2,
     color: 'rgba(255,255,255,0.3)', marginBottom: 8,
   },
-  questionText: { fontSize: 16, lineHeight: 24, color: '#FFFFFF' },
   answerText: { fontSize: 15, lineHeight: 23, color: '#FFFFFF' },
   bottomArea: { alignItems: 'center', paddingBottom: 40, gap: 16, minHeight: 180, justifyContent: 'center' },
   statusText: { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
@@ -300,4 +326,9 @@ const styles = StyleSheet.create({
   completeDot: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#007AFF', marginBottom: 8 },
   completeTitle: { fontSize: 26, fontWeight: '700', color: '#FFFFFF' },
   completeSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.4)' },
+  logoutButton: {
+    marginTop: 24, paddingVertical: 13, paddingHorizontal: 40,
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,59,48,0.4)',
+  },
+  logoutText: { color: '#FF3B30', fontSize: 15, fontWeight: '600' },
 });

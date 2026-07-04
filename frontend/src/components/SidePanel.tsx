@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { updateProfile, changePassword, logout, User, UserProfile } from '../services/auth';
+import { updateProfile, logout, User, UserProfile } from '../services/auth';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const PANEL_WIDTH = SCREEN_WIDTH * 0.85;
@@ -59,7 +59,6 @@ function Field({
 export default function SidePanel({ user, onUpdateUser, onLogout, onClose }: Props) {
   const slideAnim = useRef(new Animated.Value(PANEL_WIDTH)).current;
 
-  const [name, setName] = useState(user?.name ?? '');
   const [age, setAge] = useState(String(user?.profile?.age ?? ''));
   const [workStart, setWorkStart] = useState(user?.profile?.workStart ?? '');
   const [workEnd, setWorkEnd] = useState(user?.profile?.workEnd ?? '');
@@ -70,10 +69,7 @@ export default function SidePanel({ user, onUpdateUser, onLogout, onClose }: Pro
   const [mostEnergeticTime, setMostEnergeticTime] = useState(user?.profile?.mostEnergeticTime ?? '');
   const [activityLevel, setActivityLevel] = useState(user?.profile?.activityLevel ?? '');
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
   const [saveMsg, setSaveMsg] = useState('');
-  const [pwMsg, setPwMsg] = useState('');
 
   useEffect(() => {
     Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 65, friction: 11 }).start();
@@ -96,25 +92,12 @@ export default function SidePanel({ user, onUpdateUser, onLogout, onClose }: Pro
       activityLevel: activityLevel || undefined,
     };
     try {
-      const updated = await updateProfile({ name: name.trim(), profile });
+      const updated = await updateProfile(profile);
       onUpdateUser(updated);
       setSaveMsg('Saved');
       setTimeout(() => setSaveMsg(''), 2000);
     } catch (err) {
       setSaveMsg(err instanceof Error ? err.message : 'Failed to save');
-    }
-  }
-
-  async function handleChangePassword() {
-    if (!currentPassword || !newPassword) { setPwMsg('Fill in both fields'); return; }
-    try {
-      await changePassword(currentPassword, newPassword);
-      setCurrentPassword('');
-      setNewPassword('');
-      setPwMsg('Password updated');
-      setTimeout(() => setPwMsg(''), 2000);
-    } catch (err) {
-      setPwMsg(err instanceof Error ? err.message : 'Failed to update');
     }
   }
 
@@ -138,9 +121,6 @@ export default function SidePanel({ user, onUpdateUser, onLogout, onClose }: Pro
             </View>
 
             <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-              <Text style={styles.section}>Account</Text>
-              <Field label="Name" value={name} onChangeText={setName} placeholder="Your name" />
-
               <Text style={styles.section}>Health Profile</Text>
               <Field label="Age" value={age} onChangeText={setAge} placeholder="30" keyboardType="numeric" />
               <Field label="Work hours start" value={workStart} onChangeText={setWorkStart} placeholder="9:00 AM" />
@@ -156,14 +136,6 @@ export default function SidePanel({ user, onUpdateUser, onLogout, onClose }: Pro
                 <Text style={styles.saveButtonText}>Save profile</Text>
               </TouchableOpacity>
               {saveMsg ? <Text style={styles.msg}>{saveMsg}</Text> : null}
-
-              <Text style={styles.section}>Change Password</Text>
-              <Field label="Current password" value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry />
-              <Field label="New password" value={newPassword} onChangeText={setNewPassword} secureTextEntry />
-              <TouchableOpacity style={[styles.saveButton, { backgroundColor: 'rgba(255,255,255,0.1)' }]} onPress={handleChangePassword}>
-                <Text style={styles.saveButtonText}>Update password</Text>
-              </TouchableOpacity>
-              {pwMsg ? <Text style={styles.msg}>{pwMsg}</Text> : null}
 
               <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <Text style={styles.logoutText}>Log out</Text>

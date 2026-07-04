@@ -1,15 +1,15 @@
 import { Router, Response } from 'express';
-import { Session } from '../models/Session';
+import { Sessions } from '../services/storage';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 // POST /api/sessions — log a completed trial
-router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
+router.post('/', requireAuth, (req: AuthRequest, res: Response) => {
   const { questionIndex, delay, cueType, cueText, answerText } = req.body;
   try {
-    const session = await Session.create({
-      userId: req.userId,
+    const session = Sessions.create({
+      userId: req.userId!,
       questionIndex,
       delay,
       cueType,
@@ -23,9 +23,9 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 });
 
 // GET /api/sessions — get all sessions for current user
-router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
+router.get('/', requireAuth, (req: AuthRequest, res: Response) => {
   try {
-    const sessions = await Session.find({ userId: req.userId }).sort({ createdAt: 1 });
+    const sessions = Sessions.findByUser(req.userId!);
     res.json({ sessions });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });

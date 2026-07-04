@@ -40,42 +40,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
-export async function register(payload: {
-  name: string;
-  email: string;
-  password: string;
-  profile: UserProfile;
-}): Promise<User> {
-  const data = await request<{ token: string; user: User }>('/register', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-  _token = data.token;
-  return data.user;
-}
-
-export async function login(email: string, password: string): Promise<User> {
+export async function login(username: string): Promise<User> {
   const data = await request<{ token: string; user: User }>('/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username }),
   });
   _token = data.token;
   return data.user;
 }
 
-export async function updateProfile(payload: { name?: string; profile?: UserProfile }): Promise<User> {
+export async function updateProfile(profile: UserProfile): Promise<User> {
   const data = await request<{ user: User }>('/profile', {
     method: 'PUT',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ profile }),
   });
   return data.user;
-}
-
-export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  await request('/password', {
-    method: 'PUT',
-    body: JSON.stringify({ currentPassword, newPassword }),
-  });
 }
 
 export function logout(): void {
