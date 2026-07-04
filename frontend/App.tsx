@@ -13,20 +13,19 @@ type Screen = 'login' | 'profile-setup' | 'generating' | 'intro' | 'app';
 function App() {
   const [screen, setScreen] = useState<Screen>('login');
   const [user, setUser] = useState<User | null>(null);
-  const [audioUris, setAudioUris] = useState<string[]>([]);
   const [answers, setAnswers] = useState<AnswerEntry[]>([]);
 
   function handleLogin(u: User) { setUser(u); setScreen('profile-setup'); }
   function handleProfileSaved(u: User) { setUser(u); setScreen('generating'); }
-  function handleReady(uris: string[], ans: AnswerEntry[]) { setAudioUris(uris); setAnswers(ans); setScreen('intro'); }
+  function handleReady(ans: AnswerEntry[]) { setAnswers(ans); setScreen('intro'); }
   function handleGenerateError(msg: string) { console.error(msg); setScreen('profile-setup'); }
-  function handleLogout() { logout(); setUser(null); setAudioUris([]); setAnswers([]); setScreen('login'); }
+  function handleLogout() { logout(); setUser(null); setAnswers([]); setScreen('login'); }
 
   if (screen === 'login') return <LoginScreen onLogin={handleLogin} />;
   if (screen === 'profile-setup') return <ProfileSetupScreen user={user!} onComplete={handleProfileSaved} />;
   if (screen === 'generating') return <GeneratingScreen onReady={handleReady} onError={handleGenerateError} />;
   if (screen === 'intro') return <IntroScreen onContinue={() => setScreen('app')} />;
-  return <VoiceScreen user={user} audioUris={audioUris} answers={answers} onUpdateUser={setUser} onLogout={handleLogout} />;
+  return <VoiceScreen user={user} answers={answers} onUpdateUser={setUser} onLogout={handleLogout} />;
 }
 
 registerRootComponent(App);

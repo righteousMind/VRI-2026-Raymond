@@ -10,6 +10,8 @@ import {
   View,
 } from 'react-native';
 import { Audio } from 'expo-av';
+import { setAudioModeAsync } from 'expo-audio';
+import * as Speech from 'expo-speech';
 import { User, getToken } from '../services/auth';
 import SidePanel from '../components/SidePanel';
 import TypingDots from '../components/TypingDots';
@@ -23,7 +25,6 @@ type Phase = 'question' | 'recording' | 'delay' | 'answer' | 'complete';
 
 interface Props {
   user: User | null;
-  audioUris: string[];
   answers: AnswerEntry[];
   onUpdateUser: (u: User) => void;
   onLogout: () => void;
@@ -41,50 +42,23 @@ async function logSession(payload: object, token: string) {
   }
 }
 
-export default function VoiceScreen({ user, audioUris, answers, onUpdateUser, onLogout }: Props) {
+export default function VoiceScreen({ user, answers, onUpdateUser, onLogout }: Props) {
   const [phase, setPhase] = useState<Phase>('question');
   const [questionIndex, setQuestionIndex] = useState(0);
   const [cueText, setCueText] = useState('');
   const [panelOpen, setPanelOpen] = useState(false);
 
   const recordingRef = useRef<Audio.Recording | null>(null);
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const preloadedRef = useRef<(Audio.Sound | null)[]>([]);
   const cueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Pre-load all audio files into memory so playback is instant
-  useEffect(() => {
-    if (audioUris.length === 0) return;
-    let alive = true;
-    (async () => {
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
-      const sounds = await Promise.all(
-        audioUris.map((uri) =>
-          uri ? Audio.Sound.createAsync({ uri }, { shouldPlay: false }) : Promise.resolve(null),
-        ),
-      );
-      if (!alive) {
-        sounds.forEach((s) => s?.sound.unloadAsync());
-        return;
-      }
-      preloadedRef.current = sounds.map((s) => s?.sound ?? null);
-    })();
-    return () => {
-      alive = false;
-      preloadedRef.current.forEach((s) => { s?.stopAsync(); s?.unloadAsync(); });
-      preloadedRef.current = [];
-    };
-  }, [audioUris]);
-
-  // cleanup timers and active sound on unmount
+  // cleanup on unmount
   useEffect(() => {
     return () => {
       if (cueTimerRef.current) clearTimeout(cueTimerRef.current);
       if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
-      soundRef.current?.stopAsync();
-      soundRef.current?.unloadAsync();
+      Speech.stop();
     };
   }, []);
 
@@ -123,6 +97,11 @@ export default function VoiceScreen({ user, audioUris, answers, onUpdateUser, on
     if (!recording) return;
     await recording.stopAndUnloadAsync();
     recordingRef.current = null;
+    await setAudioModeAsync({
+      allowsRecording: false,
+      shouldRouteThroughEarpiece: false,
+      playsInSilentMode: true,
+    });
 
     setPhase('delay');
     setCueText('');
@@ -139,17 +118,17 @@ export default function VoiceScreen({ user, audioUris, answers, onUpdateUser, on
     const cueDelay = 300 + Math.random() * 900;
     cueTimerRef.current = setTimeout(() => setCueText(resolvedCue), cueDelay);
 
-    // at end of delay → play pre-loaded sound instantly
-    delayTimerRef.current = setTimeout(async () => {
+    // at end of delay → speak answer through main speaker
+    delayTimerRef.current = setTimeout(() => {
       setPhase('answer');
       logSession({ questionIndex, delay, cueType, cueText: resolvedCue, answerText: currentAnswer.answer }, token);
-      // Switch out of recording mode then play the pre-loaded sound
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
-      const sound = preloadedRef.current[questionIndex];
-      if (sound) {
-        soundRef.current = sound;
-        await sound.playAsync();
-      }
+      Speech.speak(currentAnswer.answer, {
+        voice: 'com.apple.voice.premium.en-US.Ava',
+        language: 'en-US',
+        rate: 0.9,
+        pitch: 1.0,
+        volume: 1.0,
+      });
     }, delay * 1000);
   }
 
@@ -161,8 +140,7 @@ export default function VoiceScreen({ user, audioUris, answers, onUpdateUser, on
   function handleNext() {
     if (cueTimerRef.current) { clearTimeout(cueTimerRef.current); cueTimerRef.current = null; }
     if (delayTimerRef.current) { clearTimeout(delayTimerRef.current); delayTimerRef.current = null; }
-    soundRef.current?.stopAsync();
-    soundRef.current = null;
+    Speech.stop();
     setCueText('');
     const next = questionIndex + 1;
     if (next >= answers.length) {

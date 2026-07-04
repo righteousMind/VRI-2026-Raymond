@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-import { generateAnswers, generateAndCacheAudio, AnswerEntry } from '../services/answers';
+import { generateAnswers, AnswerEntry } from '../services/answers';
 
 interface Props {
-  onReady: (audioUris: string[], answers: AnswerEntry[]) => void;
+  onReady: (answers: AnswerEntry[]) => void;
   onError: (msg: string) => void;
 }
 
@@ -59,9 +59,7 @@ export default function GeneratingScreen({ onReady, onError }: Props) {
       try {
         const answers = await generateAnswers();
         if (cancelled) return;
-        const uris = await generateAndCacheAudio();
-        if (cancelled) return;
-        onReady(uris, answers);
+        onReady(answers);
       } catch (err) {
         if (!cancelled) onError(err instanceof Error ? err.message : 'Failed to prepare session');
       }
