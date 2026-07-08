@@ -4,32 +4,22 @@
     "name": "p1",
     "latinIndex": 0,
     "profile": {
-      "age": 30,
-      "workStart": "9:00 AM",
-      "workEnd": "5:30 PM",
-      "commuteMinutes": 30,
-      "dinnerTime": "7:30 PM",
-      "dailyStepGoal": 8000,
-      "preferredExercise": "Walking",
-      "mostEnergeticTime": "Evening",
-      "activityLevel": "Below target this week"
+      "age": 25,
+      "workStart": "9:00 AM",
+      "workEnd": "5:00 PM",
+      "commuteMinutes": 32,
+      "dinnerTime": "6:30 PM",
+      "dailyStepGoal": 25,
+      "preferredExercise": "go to the gym",
+      "mostEnergeticTime": "Night",
+      "activityLevel": "below"
     }
   },
   {
     "_id": "1",
     "name": "p2",
     "latinIndex": 1,
-    "profile": {
-      "age": 24,
-      "workStart": "9:00",
-      "workEnd": "5:30",
-      "commuteMinutes": 30,
-      "dinnerTime": "7:30 pm",
-      "dailyStepGoal": 5000,
-      "preferredExercise": "gym",
-      "mostEnergeticTime": "Evening",
-      "activityLevel": "Below target this week"
-    }
+    "profile": {}
   },
   {
     "_id": "2",

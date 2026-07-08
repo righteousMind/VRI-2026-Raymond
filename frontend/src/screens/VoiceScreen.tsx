@@ -26,7 +26,6 @@ type Phase = 'question' | 'recording' | 'delay' | 'answer' | 'complete';
 interface Props {
   user: User | null;
   answers: AnswerEntry[];
-  onUpdateUser: (u: User) => void;
   onLogout: () => void;
 }
 
@@ -42,7 +41,7 @@ async function logSession(payload: object, token: string) {
   }
 }
 
-export default function VoiceScreen({ user, answers, onUpdateUser, onLogout }: Props) {
+export default function VoiceScreen({ user, answers, onLogout }: Props) {
   const [phase, setPhase] = useState<Phase>('question');
   const [questionIndex, setQuestionIndex] = useState(0);
   const [cueText, setCueText] = useState('');
@@ -84,6 +83,7 @@ export default function VoiceScreen({ user, answers, onUpdateUser, onLogout }: P
   async function startRecording() {
     const { granted } = await Audio.requestPermissionsAsync();
     if (!granted) return;
+    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
     await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
     const { recording } = await Audio.Recording.createAsync(
       Audio.RecordingOptionsPresets.HIGH_QUALITY,
@@ -114,9 +114,8 @@ export default function VoiceScreen({ user, answers, onUpdateUser, onLogout }: P
 
     const token = getToken();
 
-    // show cue at random early time (300ms – 1200ms)
-    const cueDelay = 300 + Math.random() * 900;
-    cueTimerRef.current = setTimeout(() => setCueText(resolvedCue), cueDelay);
+    // Show cue at 300ms with fade-in — no typing delay, no timing issues
+    cueTimerRef.current = setTimeout(() => setCueText(resolvedCue), 300);
 
     // at end of delay → speak answer through main speaker
     delayTimerRef.current = setTimeout(() => {
@@ -158,6 +157,7 @@ export default function VoiceScreen({ user, answers, onUpdateUser, onLogout }: P
           <View style={styles.completeDot} />
           <Text style={styles.completeTitle}>All done!</Text>
           <Text style={styles.completeSubtitle}>Thank you for completing the session.</Text>
+          <Text style={styles.completeReminder}>Please complete the questionnaires now.</Text>
           <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
             <Text style={styles.logoutText}>Log out</Text>
           </TouchableOpacity>
@@ -240,7 +240,7 @@ export default function VoiceScreen({ user, answers, onUpdateUser, onLogout }: P
       </View>
 
       {panelOpen && (
-        <SidePanel user={user} onUpdateUser={onUpdateUser} onLogout={onLogout} onClose={() => setPanelOpen(false)} />
+        <SidePanel user={user} onLogout={onLogout} onClose={() => setPanelOpen(false)} />
       )}
     </SafeAreaView>
   );
@@ -304,6 +304,7 @@ const styles = StyleSheet.create({
   completeDot: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#007AFF', marginBottom: 8 },
   completeTitle: { fontSize: 26, fontWeight: '700', color: '#FFFFFF' },
   completeSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.4)' },
+  completeReminder: { fontSize: 15, color: '#FFD60A', fontWeight: '600', marginTop: 8 },
   logoutButton: {
     marginTop: 24, paddingVertical: 13, paddingHorizontal: 40,
     borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,59,48,0.4)',

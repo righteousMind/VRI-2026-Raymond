@@ -25,7 +25,7 @@ function App() {
   if (screen === 'profile-setup') return <ProfileSetupScreen user={user!} onComplete={handleProfileSaved} />;
   if (screen === 'generating') return <GeneratingScreen onReady={handleReady} onError={handleGenerateError} />;
   if (screen === 'intro') return <IntroScreen onContinue={() => setScreen('app')} />;
-  return <VoiceScreen user={user} answers={answers} onUpdateUser={setUser} onLogout={handleLogout} />;
+  return <VoiceScreen user={user} answers={answers} onLogout={handleLogout} />;
 }
 
 registerRootComponent(App);

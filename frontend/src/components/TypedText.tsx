@@ -1,27 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text } from 'react-native';
 
 interface Props {
   text: string;
-  speed?: number;
   style?: object;
 }
 
-export default function TypedText({ text, speed = 28, style }: Props) {
-  const [displayed, setDisplayed] = useState('');
+export default function TypedText({ text, style }: Props) {
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    setDisplayed('');
-    let i = 0;
-    const timer = setInterval(() => {
-      i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) clearInterval(timer);
-    }, speed);
-    return () => clearInterval(timer);
-  }, [text, speed]);
+    opacity.setValue(0);
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [text]);
 
-  return <Text style={[styles.text, style]}>{displayed}</Text>;
+  return (
+    <Animated.Text style={[styles.text, style, { opacity }]}>
+      {text}
+    </Animated.Text>
+  );
 }
 
 const styles = StyleSheet.create({
