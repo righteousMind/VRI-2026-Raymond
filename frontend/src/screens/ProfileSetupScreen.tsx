@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -72,6 +74,7 @@ function TimeField({
 }
 
 const ENERGETIC_OPTIONS = ['Morning', 'Afternoon', 'Evening', 'Night'];
+const EXERCISE_OPTIONS = ['Walking', 'Running', 'Jogging', 'Stretching'];
 
 function Dropdown({
   label, value, options, onSelect, error,
@@ -144,7 +147,7 @@ export default function ProfileSetupScreen({ user, onComplete }: Props) {
     if (!age.trim() || isNaN(Number(age)) || Number(age) <= 0) e.age = 'Please enter a valid age';
     if (!commuteMinutes.trim() || isNaN(Number(commuteMinutes)) || Number(commuteMinutes) < 0) e.commute = 'Please enter commute minutes';
     if (!dailyStepGoal.trim() || isNaN(Number(dailyStepGoal)) || Number(dailyStepGoal) <= 0) e.stepGoal = 'Please enter a step goal';
-    if (!preferredExercise.trim()) e.exercise = 'Please enter your preferred exercise';
+    if (!preferredExercise) e.exercise = 'Please select your preferred exercise';
     if (!mostEnergeticTime) e.energetic = 'Please select your most energetic time';
     if (!activityLevel.trim()) e.activity = 'Please describe your activity level';
     setErrors(e);
@@ -163,7 +166,7 @@ export default function ProfileSetupScreen({ user, onComplete }: Props) {
         commuteMinutes: Number(commuteMinutes),
         dinnerTime: formatTime(dinnerTime),
         dailyStepGoal: Number(dailyStepGoal),
-        preferredExercise: preferredExercise.trim(),
+        preferredExercise,
         mostEnergeticTime,
         activityLevel: activityLevel.trim(),
       };
@@ -177,48 +180,60 @@ export default function ProfileSetupScreen({ user, onComplete }: Props) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>Your Profile</Text>
-      <Text style={styles.subtitle}>Help Aura personalise your experience</Text>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.inner}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Your Profile</Text>
+        <Text style={styles.subtitle}>Help Aura personalise your experience</Text>
 
-      {serverError ? <Text style={styles.serverError}>{serverError}</Text> : null}
+        {serverError ? <Text style={styles.serverError}>{serverError}</Text> : null}
 
-      <Field label="Age" value={age} onChangeText={(v) => { setAge(v); clearError('age'); }}
-        placeholder="e.g. 28" keyboardType="number-pad" error={errors.age} />
+        <Field label="Age" value={age} onChangeText={(v) => { setAge(v); clearError('age'); }}
+          placeholder="e.g. 28" keyboardType="number-pad" error={errors.age} />
 
-      <TimeField label="Work hours start" date={workStart} onDateChange={handleWorkStartChange}
-        active={activePicker === 'workStart'} onPress={() => togglePicker('workStart')} />
-      <TimeField label="Work hours end" date={workEnd} onDateChange={handleWorkEndChange}
-        active={activePicker === 'workEnd'} onPress={() => togglePicker('workEnd')} />
+        <TimeField label="Work hours start" date={workStart} onDateChange={handleWorkStartChange}
+          active={activePicker === 'workStart'} onPress={() => togglePicker('workStart')} />
+        <TimeField label="Work hours end" date={workEnd} onDateChange={handleWorkEndChange}
+          active={activePicker === 'workEnd'} onPress={() => togglePicker('workEnd')} />
 
-      <Field label="Commute (minutes)" value={commuteMinutes} onChangeText={(v) => { setCommuteMinutes(v); clearError('commute'); }}
-        placeholder="e.g. 30" keyboardType="number-pad" error={errors.commute} />
+        <Field label="Commute (minutes)" value={commuteMinutes} onChangeText={(v) => { setCommuteMinutes(v); clearError('commute'); }}
+          placeholder="e.g. 30" keyboardType="number-pad" error={errors.commute} />
 
-      <TimeField label="Dinner time" date={dinnerTime} onDateChange={setDinnerTime}
-        active={activePicker === 'dinner'} onPress={() => togglePicker('dinner')} />
+        <TimeField label="Dinner time" date={dinnerTime} onDateChange={setDinnerTime}
+          active={activePicker === 'dinner'} onPress={() => togglePicker('dinner')} />
 
-      <Field label="Daily step goal" value={dailyStepGoal} onChangeText={(v) => { setDailyStepGoal(v); clearError('stepGoal'); }}
-        placeholder="e.g. 8000" keyboardType="number-pad" error={errors.stepGoal} />
+        <Field label="Daily step goal" value={dailyStepGoal} onChangeText={(v) => { setDailyStepGoal(v); clearError('stepGoal'); }}
+          placeholder="e.g. 8000" keyboardType="number-pad" error={errors.stepGoal} />
 
-      <Field label="Preferred exercise" value={preferredExercise} onChangeText={(v) => { setPreferredExercise(v); clearError('exercise'); }}
-        placeholder="e.g. Walking" error={errors.exercise} />
+        <Dropdown label="Preferred exercise" value={preferredExercise}
+          options={EXERCISE_OPTIONS} onSelect={(v) => { setPreferredExercise(v); clearError('exercise'); }}
+          error={errors.exercise} />
 
-      <Dropdown label="Most energetic time of day" value={mostEnergeticTime}
-        options={ENERGETIC_OPTIONS} onSelect={(v) => { setMostEnergeticTime(v); clearError('energetic'); }}
-        error={errors.energetic} />
+        <Dropdown label="Most energetic time of day" value={mostEnergeticTime}
+          options={ENERGETIC_OPTIONS} onSelect={(v) => { setMostEnergeticTime(v); clearError('energetic'); }}
+          error={errors.energetic} />
 
-      <Field label="Current activity level" value={activityLevel} onChangeText={(v) => { setActivityLevel(v); clearError('activity'); }}
-        placeholder="e.g. Below target this week" error={errors.activity} />
+        <Field label="Current activity level" value={activityLevel} onChangeText={(v) => { setActivityLevel(v); clearError('activity'); }}
+          placeholder="e.g. Below target this week" error={errors.activity} />
 
-      <TouchableOpacity style={styles.button} onPress={handleNext} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.buttonText}>Next</Text>}
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.button} onPress={handleNext} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.buttonText}>Next</Text>}
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A1A' },
+  flex: { flex: 1, backgroundColor: '#0A0A1A' },
+  container: { flex: 1 },
   inner: { paddingHorizontal: 28, paddingTop: 72, paddingBottom: 40 },
   title: { fontSize: 28, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
   subtitle: { fontSize: 15, color: 'rgba(255,255,255,0.4)', marginBottom: 32 },
