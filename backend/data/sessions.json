@@ -448,5 +448,95 @@
     "cueType": "humorous",
     "cueText": "I enjoy putting pieces together. I'm combining your schedule, goals, and preferences to find the recommendation that fits you best.",
     "answerText": "Given your work schedule and commute, a great way to stay active today is to incorporate some movement during your breaks at work. You can take short walks around the office or even do some light stretching to help keep your energy up. Since you feel most energetic at night, consider hitting the gym after dinner. Aim for at least 30 minutes of exercise, focusing on both cardio and strength training, to help you reach your activity goals. If you're feeling ambitious, try to increase your daily step goal gradually, as 25 steps is quite low for an active lifestyle."
+  },
+  {
+    "_id": "e2e6f42a-f8b9-4319-b4ca-30127b4d21e0",
+    "createdAt": "2026-07-09T04:02:47.912Z",
+    "userId": "0",
+    "questionIndex": 0,
+    "delay": 1.5,
+    "cueType": "generic",
+    "cueText": "I'm working on that.",
+    "answerText": "Given your work hours from 9:30 AM to 5:30 PM and a commute that takes an hour, the best time for a 30-minute walk would be after dinner at 6:30 PM. This would allow you to unwind and take advantage of your most energetic time of day, which is at night. If you start your walk around 7 PM, you can enjoy some fresh air while also contributing to your daily step goal. Plus, it could help you digest your dinner better!"
+  },
+  {
+    "_id": "ffb739e9-3e46-4816-aaf6-4f92a3da98b1",
+    "createdAt": "2026-07-09T04:02:54.895Z",
+    "userId": "0",
+    "questionIndex": 1,
+    "delay": 4,
+    "cueType": "transparent",
+    "cueText": "I'm checking your recent activity level and daily goal.",
+    "answerText": "Since your daily step goal is 5,000 steps and you're currently below that target, it would be good to aim for at least 6,000 steps today. This gives you a bit of a push while still being achievable. Given that you have a 60-minute commute, consider using part of that time to walk more, or plan a longer walk after dinner when you feel most energetic. Just remember to take it at a pace that feels comfortable for you!"
+  },
+  {
+    "_id": "d400be3f-29da-4f13-aa9f-4895d288d582",
+    "createdAt": "2026-07-09T04:03:06.080Z",
+    "userId": "0",
+    "questionIndex": 2,
+    "delay": 6,
+    "cueType": "humorous",
+    "cueText": "Finding extra walking opportunities is one of my favourite digital hobbies. I'm looking through your routine to identify places where you can naturally add more steps.",
+    "answerText": "To fit more steps into your day, consider taking a brisk walk during your commute. If feasible, park further away or get off public transport a stop early to increase your walking distance. You can also incorporate short walking breaks during your work hours, like a quick stroll around the office every hour. Finally, since you feel more energetic at night, try taking a longer walk after dinner to help reach your daily step goal."
+  },
+  {
+    "_id": "ebe7975d-08ec-455c-9019-0cc1394e9d5a",
+    "createdAt": "2026-07-09T04:03:15.112Z",
+    "userId": "0",
+    "questionIndex": 3,
+    "delay": 4,
+    "cueType": "generic",
+    "cueText": "Let me check.",
+    "answerText": "Given your schedule, walking after dinner might be the best option since you feel most energetic at night. You could plan a walk around 7:00 PM, which gives you time to digest your meal before heading out. This way, you can also enjoy the evening atmosphere, and it will help you reach your daily step goal of 5,000 steps more easily. Just make sure to stay safe and visible if you’re walking after dark."
+  },
+  {
+    "_id": "4ae80a8b-d38a-4733-8dc9-09875dc6449d",
+    "createdAt": "2026-07-09T04:03:24.614Z",
+    "userId": "0",
+    "questionIndex": 4,
+    "delay": 6,
+    "cueType": "transparent",
+    "cueText": "I'm considering your reported energy patterns and daily commitments.",
+    "answerText": "If you're feeling tired after work today, consider taking a short walk as a way to boost your energy. Even a 10 to 15-minute stroll can help refresh you and contribute to your daily step goal. Since your most energetic time is at night, try to schedule your longer walk or any enjoyable activity for later in the evening when you feel more awake. Remember, it's okay to listen to your body; light movement can be beneficial without being overwhelming."
+  },
+  {
+    "_id": "a25fc9c6-2916-42db-9591-210906879a8e",
+    "createdAt": "2026-07-09T04:03:29.390Z",
+    "userId": "0",
+    "questionIndex": 5,
+    "delay": 1.5,
+    "cueType": "humorous",
+    "cueText": "Creating realistic plans is easier than resisting software updates. I'm reviewing your routine and goals to identify an achievable activity plan.",
+    "answerText": "Considering your routine, a realistic exercise plan for today would be to incorporate walking during your commute. If possible, you could park further away or choose to walk part of the way. After your work hours, you can aim for a longer evening walk around your neighborhood, which aligns with your energetic time of day. Aim for around 30-45 minutes of walking after dinner to help you hit your step goal of 5,000 steps. This way, you can enjoy your evening and get your activity in without feeling rushed."
+  },
+  {
+    "_id": "e0824f0d-808a-4de1-9d3c-3f7339eb625b",
+    "createdAt": "2026-07-09T04:03:40.204Z",
+    "userId": "0",
+    "questionIndex": 6,
+    "delay": 6,
+    "cueType": "generic",
+    "cueText": "Let me take a look.",
+    "answerText": "Your best opportunity for physical activity is likely in the evening after work. Since you have dinner at 6:30 PM, you could go for a walk right after that, when you’re feeling more energetic. Additionally, consider using part of your commute time to walk more, perhaps by parking farther away or getting off public transport a stop early. This way, you can gradually increase your step count throughout the day and reach your 5,000-step goal more easily."
+  },
+  {
+    "_id": "82558cb0-5f75-4628-b1ce-894190f3b81f",
+    "createdAt": "2026-07-09T04:03:45.380Z",
+    "userId": "0",
+    "questionIndex": 7,
+    "delay": 1.5,
+    "cueType": "transparent",
+    "cueText": "I'm reviewing your schedule and step goal to identify achievable changes.",
+    "answerText": "To reach your 5,000-step goal without disrupting your schedule, consider incorporating short walks during your commute. If possible, park farther away from your workplace or get off public transport a stop early to add some extra steps. You can also take short, brisk walks during your lunch break or after dinner while still enjoying your evening energy. Even pacing around your home during TV time or doing house chores can help you accumulate steps throughout the day."
+  },
+  {
+    "_id": "d7ee3c3d-cec4-4f40-81d0-8b4e29f12088",
+    "createdAt": "2026-07-09T04:03:53.582Z",
+    "userId": "0",
+    "questionIndex": 8,
+    "delay": 4,
+    "cueType": "humorous",
+    "cueText": "I enjoy putting pieces together. I'm combining your schedule, goals, and preferences to find the recommendation that fits you best.",
+    "answerText": "Since you have a busy work schedule from 9:30 AM to 5:30 PM and a 60-minute commute, try to incorporate walking during your breaks or after work. Consider taking a brisk 10-minute walk during your lunch break to add steps. After dinner at 6:30 PM, you could go for a longer walk to unwind and help reach your daily goal of 5,000 steps, especially since you feel more energetic at night. Aim for a 30- to 40-minute walk after dinner, which could significantly boost your activity level for the day."
   }
 ]

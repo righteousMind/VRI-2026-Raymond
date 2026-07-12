@@ -4,15 +4,15 @@
     "name": "p1",
     "latinIndex": 0,
     "profile": {
-      "age": 25,
-      "workStart": "9:00 AM",
-      "workEnd": "5:00 PM",
-      "commuteMinutes": 32,
+      "age": 24,
+      "workStart": "9:30 AM",
+      "workEnd": "5:30 PM",
+      "commuteMinutes": 60,
       "dinnerTime": "6:30 PM",
-      "dailyStepGoal": 25,
-      "preferredExercise": "go to the gym",
+      "dailyStepGoal": 5000,
+      "preferredExercise": "walking",
       "mostEnergeticTime": "Night",
-      "activityLevel": "below"
+      "activityLevel": "below target this week"
     }
   },
   {
