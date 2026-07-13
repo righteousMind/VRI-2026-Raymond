@@ -75,6 +75,7 @@ function TimeField({
 
 const ENERGETIC_OPTIONS = ['Morning', 'Afternoon', 'Evening', 'Night'];
 const EXERCISE_OPTIONS = ['Walking', 'Running', 'Jogging', 'Stretching'];
+const ACTIVITY_OPTIONS = ['Below target', 'On track', 'Exceeding goal'];
 
 function Dropdown({
   label, value, options, onSelect, error,
@@ -149,7 +150,7 @@ export default function ProfileSetupScreen({ user, onComplete }: Props) {
     if (!dailyStepGoal.trim() || isNaN(Number(dailyStepGoal)) || Number(dailyStepGoal) <= 0) e.stepGoal = 'Please enter a step goal';
     if (!preferredExercise) e.exercise = 'Please select your preferred exercise';
     if (!mostEnergeticTime) e.energetic = 'Please select your most energetic time';
-    if (!activityLevel.trim()) e.activity = 'Please describe your activity level';
+    if (!activityLevel) e.activity = 'Please select your activity level';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -168,7 +169,7 @@ export default function ProfileSetupScreen({ user, onComplete }: Props) {
         dailyStepGoal: Number(dailyStepGoal),
         preferredExercise,
         mostEnergeticTime,
-        activityLevel: activityLevel.trim(),
+        activityLevel,
       };
       const updated = await updateProfile(profile);
       onComplete(updated);
@@ -203,7 +204,7 @@ export default function ProfileSetupScreen({ user, onComplete }: Props) {
         <TimeField label="Work hours end" date={workEnd} onDateChange={handleWorkEndChange}
           active={activePicker === 'workEnd'} onPress={() => togglePicker('workEnd')} />
 
-        <Field label="Commute (minutes)" value={commuteMinutes} onChangeText={(v) => { setCommuteMinutes(v); clearError('commute'); }}
+        <Field label="Commute time (minutes)" value={commuteMinutes} onChangeText={(v) => { setCommuteMinutes(v); clearError('commute'); }}
           placeholder="e.g. 30" keyboardType="number-pad" error={errors.commute} />
 
         <TimeField label="Dinner time" date={dinnerTime} onDateChange={setDinnerTime}
@@ -220,8 +221,9 @@ export default function ProfileSetupScreen({ user, onComplete }: Props) {
           options={ENERGETIC_OPTIONS} onSelect={(v) => { setMostEnergeticTime(v); clearError('energetic'); }}
           error={errors.energetic} />
 
-        <Field label="Current activity level" value={activityLevel} onChangeText={(v) => { setActivityLevel(v); clearError('activity'); }}
-          placeholder="e.g. Below target this week" error={errors.activity} />
+        <Dropdown label="Current activity level" value={activityLevel}
+          options={ACTIVITY_OPTIONS} onSelect={(v) => { setActivityLevel(v); clearError('activity'); }}
+          error={errors.activity} />
 
         <TouchableOpacity style={styles.button} onPress={handleNext} disabled={loading}>
           {loading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.buttonText}>Next</Text>}
