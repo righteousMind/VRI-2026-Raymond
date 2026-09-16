@@ -26,3 +26,8 @@ coverage/
 # Generated audio files
 backend/public/audio/*.mp3
 backend/tmp/
+
+# Participant data (contains real study data — never commit)
+backend/data/answers.json
+backend/data/sessions.json
+backend/data/users.json

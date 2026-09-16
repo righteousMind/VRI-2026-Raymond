@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Audio } from 'expo-av';
 import { setAudioModeAsync } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { User, getToken } from '../services/auth';
@@ -47,10 +46,14 @@ export default function VoiceScreen({ user, answers, onLogout }: Props) {
   const [cueText, setCueText] = useState('');
   const [panelOpen, setPanelOpen] = useState(false);
 
-  const recordingRef = useRef<Audio.Recording | null>(null);
   const cueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // allow spoken answers to play even when the device is on silent/vibrate
+  useEffect(() => {
+    setAudioModeAsync({ playsInSilentMode: true });
+  }, []);
 
   // cleanup on unmount
   useEffect(() => {
@@ -80,29 +83,11 @@ export default function VoiceScreen({ user, answers, onLogout }: Props) {
     }
   }, [phase, pulseAnim]);
 
-  async function startRecording() {
-    const { granted } = await Audio.requestPermissionsAsync();
-    if (!granted) return;
-    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-    await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-    const { recording } = await Audio.Recording.createAsync(
-      Audio.RecordingOptionsPresets.HIGH_QUALITY,
-    );
-    recordingRef.current = recording;
+  function startRecording() {
     setPhase('recording');
   }
 
-  async function stopAndRunTrial() {
-    const recording = recordingRef.current;
-    if (!recording) return;
-    await recording.stopAndUnloadAsync();
-    recordingRef.current = null;
-    await setAudioModeAsync({
-      allowsRecording: false,
-      shouldRouteThroughEarpiece: false,
-      playsInSilentMode: true,
-    });
-
+  function stopAndRunTrial() {
     setPhase('delay');
     setCueText('');
 
